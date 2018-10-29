@@ -5,10 +5,8 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.widget.ImageView;
 
 import com.arik.fm220sdk.FPInterface;
@@ -16,6 +14,8 @@ import com.arik.fm220sdk.FPSDK;
 import com.bumptech.glide.Glide;
 
 public class MainActivity extends AppCompatActivity {
+    private boolean cancelled = false;
+    private boolean running = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +31,15 @@ public class MainActivity extends AppCompatActivity {
         final UsbDevice dev  = getIntent().getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
         fab.setOnClickListener(view -> {
+            if (running) {
+                cancelled = true;
+                running = false;
+                return;
+            }
             if (dev != null) {
                 new Thread(() -> {
+                    running = true;
+                    cancelled = false;
                     try (FPSDK sdk = FPSDK.with(MainActivity.this).from(dev)) {
                         sdk.startPreview(new FPInterface() {
                             @Override
@@ -44,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
                             @Override
                             public boolean cancelled() {
-                                return false;
+                                return cancelled;
                             }
                         });
                     } catch (Exception e) {
