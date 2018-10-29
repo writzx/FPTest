@@ -1,4 +1,4 @@
-package com.arik.fptest;
+package com.arik.fm220sdk;
 
 public class FPResult {
     FPDevice _device;

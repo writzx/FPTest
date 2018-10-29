@@ -1,4 +1,4 @@
-package com.arik.fptest;
+package com.arik.fm220sdk;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,11 +8,10 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.support.annotation.NonNull;
-import android.widget.ImageView;
 
 import com.startek.fingerprint.library.NativeApi;
 
-public class FPSDK {
+public class FPSDK implements AutoCloseable{
     static FPSDK instance;
 
     static final int FP_BITMAP_LENGTH = 0x4b436;
@@ -58,7 +57,7 @@ public class FPSDK {
         return instance;
     }
 
-    public FPSDK from(@NonNull UsbDevice device) throws Exception {
+    public synchronized FPSDK from(@NonNull UsbDevice device) throws Exception {
         if (instance._usb_man == null) {
             throw new Exception("Not initialized properly!");
         }
@@ -90,7 +89,7 @@ public class FPSDK {
         return instance;
     }
 
-    public void startPreview(@NonNull FPInterface callback) {
+    public synchronized void startPreview(@NonNull FPInterface callback) {
         int nfiq = 6;
         int code = 0;
 
@@ -108,7 +107,12 @@ public class FPSDK {
                 callback.onImage(bitmap, nfiq);
             }
 
-            wait(200);
+            wait(1000);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        _device.close();
     }
 }
